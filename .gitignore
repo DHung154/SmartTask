@@ -1,0 +1,17 @@
+/vendor/
+/public/uploads/*
+!public/uploads/.gitkeep
+/.claude/
+
+# Cấu hình riêng của từng máy - KHÔNG commit (chứa mật khẩu DB)
+.env
+
+# File session sinh ra lúc chạy
+/storage/sessions/*
+!/storage/sessions/.gitkeep
+/storage/cache/*
+!/storage/cache/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/backups/*.sql
+!/storage/backups/.gitkeep

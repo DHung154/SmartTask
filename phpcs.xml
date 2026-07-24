@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<ruleset name="TodoPHP">
+    <rule ref="PSR12"/>
+    <file>app/Controllers/ApiTaskController.php</file>
+    <file>app/Controllers/HealthController.php</file>
+    <file>app/Core/Eloquent.php</file>
+    <file>app/Core/JsonResponse.php</file>
+    <file>app/Core/Cache.php</file>
+    <file>app/Core/Logger.php</file>
+    <file>app/Core/Queue.php</file>
+    <file>app/Entities</file>
+    <file>app/Middleware</file>
+    <file>app/Support</file>
+    <file>tests</file>
+    <file>scripts/work_queue.php</file>
+</ruleset>
