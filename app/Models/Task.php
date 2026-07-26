@@ -306,6 +306,7 @@ class Task extends Model
                     attachment_path = :attachment_path,
                     attachment_name = :attachment_name,
                     list_id = :list_id,
+                    team_id = :team_id, -- <--- Bổ sung dòng này để lưu team_id vào database
                     is_important = :is_important,
                     priority = :priority,
                     progress = :progress,
@@ -321,6 +322,7 @@ class Task extends Model
             ':attachment_path' => $data['attachment_path'] ?? null,
             ':attachment_name' => $data['attachment_name'] ?? null,
             ':list_id'      => $data['list_id'] ?? null,
+            ':team_id'      => $data['team_id'] ?? null, 
             ':is_important' => $data['is_important'] ?? 0,
             ':priority'     => $data['priority'] ?? 'normal',
             ':progress'     => max(0, min(100, (int)($data['progress'] ?? 0))),
@@ -330,7 +332,6 @@ class Task extends Model
             ':user_id'      => $userId
         ]);
     }
-
     /**
      * Xï¿½a m?m m?t task (dua vï¿½o thï¿½ng rï¿½c)
      *

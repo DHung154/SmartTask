@@ -23,7 +23,7 @@ USE `todo_schema` ;
 -- -----------------------------------------------------
 -- Table `users`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `users` ;
+DROP TABLE IF EXISTS `users` ;todo_schematodo_schema
 
 CREATE TABLE IF NOT EXISTS `users` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -148,6 +148,35 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_unicode_ci;
 
+-- Bảng lưu thông tin Nhóm
+CREATE TABLE IF NOT EXISTS `teams` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  `description` VARCHAR(255) NULL DEFAULT NULL,
+  `owner_id` INT NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_teams_owner` FOREIGN KEY (`owner_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bảng thành viên và phân quyền trong nhóm (owner, admin, member)
+CREATE TABLE IF NOT EXISTS `team_members` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `team_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  `role` VARCHAR(20) NOT NULL DEFAULT 'member',
+  `joined_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `uq_team_user` (`team_id` ASC, `user_id` ASC),
+  CONSTRAINT `fk_tm_team` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_tm_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bổ sung cột team_id vào bảng tasks
+ALTER TABLE `tasks` 
+  ADD COLUMN `team_id` INT NULL DEFAULT NULL AFTER `list_id`,
+  ADD INDEX `idx_tasks_team_id` (`team_id` ASC),
+  ADD CONSTRAINT `fk_tasks_team` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

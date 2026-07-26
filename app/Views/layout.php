@@ -5,15 +5,14 @@ use App\Core\View;
 
 $isLoggedIn = (bool) Session::get('user_id');
 
-// B? l?c dang du?c ch?n, dÃ¯Â¿Â½ng d? bÃ¯Â¿Â½i sÃ¯Â¿Â½ng dÃ¯Â¿Â½ng m?c trong sidebar
+// Bộ lọc đang được chọn, dùng để bôi sáng dòng mục trong sidebar
 $currentFilter = $active_filter ?? ($preSelectedListId ?? 'inbox');
 $activePage = $active_page ?? '';
 if ($activePage !== '' && !isset($active_filter)) {
     $currentFilter = '';
 }
 
-// CÃ¯Â¿Â½c m?c c? d?nh trong sidebar.
-// Gom thÃ¯Â¿Â½nh m?ng r?i l?p thay vÃ¯Â¿Â½ copy-paste 8 kh?i HTML g?n gi?ng nhau.
+// Các mục cố định trong sidebar.
 $navItems = [
     ['key' => 'my-day',     'url' => '/tasks?filter=my-day',     'icon' => 'fa-solid fa-sun',                  'label' => "H\u{00F4}m nay",         'tone' => 'warning'],
     ['key' => 'important',  'url' => '/tasks?filter=important',  'icon' => 'fa-solid fa-star',                 'label' => "Quan tr\u{1ECD}ng",      'tone' => 'danger'],
@@ -28,7 +27,9 @@ $statusItems = [
     ['key' => 'all',        'url' => '/tasks?filter=all',        'icon' => 'fa-solid fa-list-check',     'label' => "T\u{1EA5}t c\u{1EA3}",          'tone' => ''],
 ];
 
+// Thêm mục "teams" vào danh sách Công cụ
 $toolItems = [
+    ['key' => 'teams',    'url' => '/teams',    'icon' => 'fa-solid fa-users',         'label' => "Nh\u{00F3}m Workspaces"],
     ['key' => 'kanban',   'url' => '/kanban',   'icon' => 'fa-solid fa-table-columns', 'label' => "Kanban"],
     ['key' => 'calendar', 'url' => '/calendar', 'icon' => 'fa-regular fa-calendar', 'label' => "L\u{1ECB}ch"],
     ['key' => 'report',   'url' => '/report',   'icon' => 'fa-solid fa-chart-simple', 'label' => "B\u{00E1}o c\u{00E1}o"],
@@ -43,10 +44,6 @@ $toolItems = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= View::e($title ?? 'To-Do MVC') ?></title>
 
-    <?php
-    // Ã¯Â¿Â½?t theme TRU?C khi trang v? ra, trÃ¯Â¿Â½nh hi?n tu?ng nhÃ¯Â¿Â½y tr?ng
-    // (trang sÃ¯Â¿Â½ng lÃ¯Â¿Â½e lÃ¯Â¿Â½n m?t nh?p r?i m?i chuy?n sang t?i)
-    ?>
     <script>
         (function () {
             try {
@@ -61,11 +58,6 @@ $toolItems = [
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap-grid.min.css">
-    <?php
-    // DÃ¯Â¿Â½ng du?ng d?n tuy?t d?i "/css/..." thay vÃ¯Â¿Â½ "../css/...".
-    // Ã¯Â¿Â½u?ng d?n tuong d?i ph? thu?c vÃ¯Â¿Â½o URL hi?n t?i nÃ¯Â¿Â½n s? h?ng
-    // ? nh?ng trang cÃ¯Â¿Â½ d? sÃ¯Â¿Â½u khÃ¯Â¿Â½c nhau.
-    ?>
     <link rel="stylesheet" href="/css/alter_style.css?v=20260722d">
     <link rel="stylesheet" href="/css/profile.css?v=20260722b">
 </head>
@@ -106,11 +98,6 @@ $toolItems = [
                         <span class="avatar"><?= View::e(mb_strtoupper(mb_substr((string)Session::get('user_name'), 0, 1))) ?></span>
                     </a>
 
-                    <?php
-                    // Ã¯Â¿Â½ang xu?t dÃ¯Â¿Â½ng POST + CSRF thay vÃ¯Â¿Â½ link GET.
-                    // N?u d? link GET, k? x?u nhÃ¯Â¿Â½ng <img src="/logout"> lÃ¯Â¿Â½ b?n
-                    // b? dÃ¯Â¿Â½ ra kh?i phiÃ¯Â¿Â½n lÃ¯Â¿Â½m vi?c mÃ¯Â¿Â½ khÃ¯Â¿Â½ng hi?u vÃ¯Â¿Â½ sao.
-                    ?>
                     <form method="POST" action="/logout" class="inline-form">
                         <?= Csrf::field() ?>
                         <button type="submit" class="icon-btn btn-logout" title="&#272;&#259;ng xu&#7845;t" aria-label="&#272;&#259;ng xu&#7845;t">
@@ -133,8 +120,6 @@ $toolItems = [
                         <?php
                         $count    = $taskCounts[$item['key']] ?? 0;
                         $isActive = ($currentFilter === $item['key']) ? 'active' : '';
-                        // RiÃ¯Â¿Â½ng m?c "QuÃ¯Â¿Â½ h?n" ch? hi?n khi th?c s? cÃ¯Â¿Â½ vi?c quÃ¯Â¿Â½ h?n,
-                        // d? sidebar khÃ¯Â¿Â½ng b? r?i lÃ¯Â¿Â½c m?i th? dang ?n
                         if ($item['key'] === 'overdue' && $count === 0 && $currentFilter !== 'overdue') {
                             continue;
                         }
@@ -199,7 +184,6 @@ $toolItems = [
                     <?php if (!empty($userLists)): ?>
                         <?php foreach ($userLists as $list): ?>
                             <?php
-                            // So sÃ¯Â¿Â½nh l?ng (==) d? '5' (string) v?n b?ng 5 (int)
                             $isActive  = ($currentFilter == $list['id']) ? 'active' : '';
                             $listCount = $taskCounts['lists'][$list['id']] ?? 0;
                             ?>
@@ -267,4 +251,3 @@ $toolItems = [
 </body>
 
 </html>
-

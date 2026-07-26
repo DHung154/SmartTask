@@ -116,6 +116,14 @@ $router->get('/lists/edit', ListController::class, 'edit');
 $router->post('/lists/edit', ListController::class, 'edit');
 $router->post('/lists/delete', ListController::class, 'delete');
 
+// --- Team Workspaces Routes ---
+$router->get('/teams', App\Controllers\TeamController::class, 'index');
+$router->get('/teams/create', App\Controllers\TeamController::class, 'create');
+$router->post('/teams/create', App\Controllers\TeamController::class, 'create');
+$router->get('/teams/detail', App\Controllers\TeamController::class, 'detail');
+$router->post('/teams/add-member', \App\Controllers\TeamController::class, 'addMember');
+$router->post('/teams/store', \App\Controllers\TeamController::class, 'store', [\App\Middleware\AuthMiddleware::class]);
+$router->post('/teams/delete', \App\Controllers\TeamController::class, 'delete');
 // Dispatch the request
 // This will call the appropriate controller method based on the URL
 $router->dispatch();

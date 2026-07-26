@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Core;
 
 class Mailer
@@ -107,5 +108,15 @@ class Mailer
         }
 
         return $response;
+    }
+
+    /**
+     * Bổ sung: Phương thức tĩnh hỗ trợ gọi gửi nhanh Mailer::quickSend(...) 
+     * không cần tự tạo đối tượng new Mailer() ở các file khác.
+     */
+    public static function quickSend($to, $subject, $html, $text = '')
+    {
+        $mailer = new self();
+        return $mailer->send($to, $subject, $html, $text);
     }
 }

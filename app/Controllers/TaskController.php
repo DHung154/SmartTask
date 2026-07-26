@@ -7,32 +7,35 @@ use App\Core\Session;
 use App\Models\ActivityLog;
 use App\Models\Task;
 use App\Models\TodoList;
+use App\Models\Team; // <-- Bổ sung Model Team
 
 class TaskController extends Controller
 {
     private $taskModel;
     private $listModel;
     private $activityLog;
+    private $teamModel; // <-- Khai báo biến teamModel
 
     public function __construct()
     {
         $this->taskModel = new Task();
         $this->listModel = new TodoList();
         $this->activityLog = new ActivityLog();
+        $this->teamModel = new Team(); // <-- Khởi tạo Team model
     }
 
     public static function filterMeta()
     {
         return [
-            'inbox' => ['title' => "C\u{00F4}ng vi\u{1EC7}c", 'empty' => "Ch\u{01B0}a c\u{00F3} c\u{00F4}ng vi\u{1EC7}c n\u{00E0}o \u{1EDF} \u{0111}\u{00E2}y."],
-            'my-day' => ['title' => "H\u{00F4}m nay", 'empty' => "H\u{00F4}m nay b\u{1EA1}n ch\u{01B0}a c\u{00F3} vi\u{1EC7}c n\u{00E0}o \u{0111}\u{1EBF}n h\u{1EA1}n."],
-            'important' => ['title' => "Quan tr\u{1ECD}ng", 'empty' => "Ch\u{01B0}a c\u{00F3} vi\u{1EC7}c quan tr\u{1ECD}ng."],
-            'planned' => ['title' => "C\u{00F3} h\u{1EA1}n ch\u{00F3}t", 'empty' => "Ch\u{01B0}a c\u{00F3} vi\u{1EC7}c n\u{00E0}o \u{0111}\u{1EB7}t h\u{1EA1}n ch\u{00F3}t."],
-            'overdue' => ['title' => "Qu\u{00E1} h\u{1EA1}n", 'empty' => "B\u{1EA1}n kh\u{00F4}ng c\u{00F3} vi\u{1EC7}c n\u{00E0}o qu\u{00E1} h\u{1EA1}n."],
-            'completed' => ['title' => "\u{0110}\u{00E3} ho\u{00E0}n th\u{00E0}nh", 'empty' => "Ch\u{01B0}a ho\u{00E0}n th\u{00E0}nh vi\u{1EC7}c n\u{00E0}o."],
-            'incomplete' => ['title' => "Ch\u{01B0}a ho\u{00E0}n th\u{00E0}nh", 'empty' => "B\u{1EA1}n \u{0111}\u{00E3} xong h\u{1EBF}t m\u{1ECD}i vi\u{1EC7}c."],
-            'all' => ['title' => "T\u{1EA5}t c\u{1EA3} c\u{00F4}ng vi\u{1EC7}c", 'empty' => "B\u{1EA1}n ch\u{01B0}a c\u{00F3} c\u{00F4}ng vi\u{1EC7}c n\u{00E0}o."],
-            'trash' => ['title' => "Th\u{00F9}ng r\u{00E1}c", 'empty' => "Th\u{00F9}ng r\u{00E1}c tr\u{1ED1}ng."],
+            'inbox' => ['title' => "Công việc", 'empty' => "Chưa có công việc nào ở đây."],
+            'my-day' => ['title' => "Hôm nay", 'empty' => "Hôm nay bạn chưa có việc nào đến hạn."],
+            'important' => ['title' => "Quan trọng", 'empty' => "Chưa có việc quan trọng."],
+            'planned' => ['title' => "Có hạn chót", 'empty' => "Chưa có việc nào đặt hạn chót."],
+            'overdue' => ['title' => "Quá hạn", 'empty' => "Bạn không có việc nào quá hạn."],
+            'completed' => ['title' => "Đã hoàn thành", 'empty' => "Chưa hoàn thành việc nào."],
+            'incomplete' => ['title' => "Chưa hoàn thành", 'empty' => "Bạn đã xong hết mọi việc."],
+            'all' => ['title' => "Tất cả công việc", 'empty' => "Bạn chưa có công việc nào."],
+            'trash' => ['title' => "Thùng rác", 'empty' => "Thùng rác trống."],
         ];
     }
 
@@ -54,12 +57,12 @@ class TaskController extends Controller
         } elseif (is_numeric($filter)) {
             $currentList = $this->listModel->findById($filter, $userId);
             if (!$currentList) {
-                Session::flash('error', "Kh\u{00F4}ng t\u{00EC}m th\u{1EA5}y danh s\u{00E1}ch.");
+                Session::flash('error', "Không tìm thấy danh sách.");
                 $this->redirect('/');
                 return;
             }
             $title = $currentList['name'];
-            $emptyText = "Danh s\u{00E1}ch n\u{00E0}y ch\u{01B0}a c\u{00F3} c\u{00F4}ng vi\u{1EC7}c.";
+            $emptyText = "Danh sách này chưa có công việc.";
         }
 
         $totalPages = $this->taskModel->totalPages($userId, $filter);
@@ -86,7 +89,7 @@ class TaskController extends Controller
         }
         $userId = Session::get('user_id');
         $this->view('tasks/create', $this->baseData($userId) + [
-            'title' => "Th\u{00EA}m c\u{00F4}ng vi\u{1EC7}c",
+            'title' => "Thêm công việc",
             'preSelectedListId' => $_GET['list'] ?? null,
             'active_filter' => $_GET['list'] ?? null,
         ]);
@@ -107,12 +110,12 @@ class TaskController extends Controller
         $data += ['user_id' => $userId, 'attachment_path' => $attachment['path'] ?? null, 'attachment_name' => $attachment['name'] ?? null];
         $taskId = $this->taskModel->create($data);
         if (!$taskId) {
-            $this->backWithErrors('/tasks/create', [], "Kh\u{00F4}ng l\u{01B0}u \u{0111}\u{01B0}\u{1EE3}c c\u{00F4}ng vi\u{1EC7}c.");
+            $this->backWithErrors('/tasks/create', [], "Không lưu được công việc.");
             return;
         }
-        $this->activityLog->log($userId, 'create', 'task', $taskId, "Th\u{00EA}m c\u{00F4}ng vi\u{1EC7}c: " . $data['title']);
+        $this->activityLog->log($userId, 'create', 'task', $taskId, "Thêm công việc: " . $data['title']);
         Cache::forgetDashboard((int) $userId);
-        Session::flash('success', "\u{0110}\u{00E3} th\u{00EA}m c\u{00F4}ng vi\u{1EC7}c \"" . $data['title'] . '".');
+        Session::flash('success', "Đã thêm công việc \"" . $data['title'] . '".');
         $this->redirect($data['list_id'] ? '/tasks?list=' . $data['list_id'] : '/');
     }
 
@@ -125,7 +128,7 @@ class TaskController extends Controller
         $userId = Session::get('user_id');
         $title = trim($_POST['title'] ?? '');
         if ($title === '' || mb_strlen($title) > 200) {
-            Session::flash('error', $title === '' ? "H\u{00E3}y nh\u{1EAD}p t\u{00EA}n c\u{00F4}ng vi\u{1EC7}c." : "T\u{00EA}n c\u{00F4}ng vi\u{1EC7}c t\u{1ED1}i \u{0111}a 200 k\u{00FD} t\u{1EF1}.");
+            Session::flash('error', $title === '' ? "Hãy nhập tên công việc." : "Tên công việc tối đa 200 ký tự.");
             $this->redirect($backTo);
             return;
         }
@@ -137,10 +140,10 @@ class TaskController extends Controller
             'is_important' => (int)($filter === 'important'), 'priority' => 'normal', 'progress' => 0,
         ]);
         if ($taskId) {
-            $this->activityLog->log($userId, 'create', 'task', $taskId, "Th\u{00EA}m nhanh: " . $title);
+            $this->activityLog->log($userId, 'create', 'task', $taskId, "Thêm nhanh: " . $title);
             Cache::forgetDashboard((int) $userId);
         }
-        Session::flash('success', "\u{0110}\u{00E3} th\u{00EA}m \"" . $title . '".');
+        Session::flash('success', "Đã thêm \"" . $title . '".');
         $this->redirect($backTo);
     }
 
@@ -151,7 +154,7 @@ class TaskController extends Controller
         $taskId = $_GET['id'] ?? null;
         $task = $taskId ? $this->taskModel->findById($taskId, $userId) : false;
         if (!$task) {
-            Session::flash('error', "Kh\u{00F4}ng t\u{00EC}m th\u{1EA5}y c\u{00F4}ng vi\u{1EC7}c.");
+            Session::flash('error', "Không tìm thấy công việc.");
             $this->redirect('/');
             return;
         }
@@ -159,7 +162,17 @@ class TaskController extends Controller
             $this->saveEditedTask($task);
             return;
         }
-        $this->view('tasks/edit', $this->baseData($userId) + ['title' => "S\u{1EED}a c\u{00F4}ng vi\u{1EC7}c", 'task' => $task]);
+
+        // BỔ SUNG: Lấy danh sách nhóm của user để truyền sang view edit.php
+        $teams = method_exists($this->teamModel, 'getTeamsByUserId') 
+            ? $this->teamModel->getTeamsByUserId($userId) 
+            : [];
+
+        $this->view('tasks/edit', $this->baseData($userId) + [
+            'title' => "Sửa công việc", 
+            'task' => $task,
+            'teams' => $teams // <-- Truyền mảng teams ra view
+        ]);
     }
 
     private function saveEditedTask($task)
@@ -182,13 +195,13 @@ class TaskController extends Controller
             $data['attachment_name'] = $attachment['name'];
         }
         if ($this->taskModel->update($task['id'], $data, $userId)) {
-            $this->activityLog->log($userId, 'update', 'task', $task['id'], "C\u{1EAD}p nh\u{1EAD}t: " . $data['title']);
+            $this->activityLog->log($userId, 'update', 'task', $task['id'], "Cập nhật: " . $data['title']);
             Cache::forgetDashboard((int) $userId);
-            Session::flash('success', "\u{0110}\u{00E3} c\u{1EAD}p nh\u{1EAD}t c\u{00F4}ng vi\u{1EC7}c.");
+            Session::flash('success', "Đã cập nhật công việc.");
             $this->redirect('/');
             return;
         }
-        $this->backWithErrors($backUrl, [], "Kh\u{00F4}ng c\u{1EAD}p nh\u{1EAD}t \u{0111}\u{01B0}\u{1EE3}c c\u{00F4}ng vi\u{1EC7}c.");
+        $this->backWithErrors($backUrl, [], "Không cập nhật được công việc.");
     }
 
     public function kanban()
@@ -212,7 +225,7 @@ class TaskController extends Controller
         $taskId = (int)($_POST['id'] ?? 0);
         $progress = max(0, min(100, (int)($_POST['progress'] ?? 0)));
         if (!$taskId || !$this->taskModel->updateProgress($taskId, Session::get('user_id'), $progress)) {
-            Session::flash('error', "Kh\u{00F4}ng c\u{1EAD}p nh\u{1EAD}t \u{0111}\u{01B0}\u{1EE3}c ti\u{1EBF}n \u{0111}\u{1ED9}.");
+            Session::flash('error', "Không cập nhật được tiến độ.");
         } else {
             Cache::forgetDashboard((int) Session::get('user_id'));
         }
@@ -230,17 +243,17 @@ class TaskController extends Controller
         $this->requireCsrf($backTo);
         $taskId = (int)($_POST['id'] ?? 0);
         if (!$taskId || !$this->taskModel->{$method}($taskId, Session::get('user_id'))) {
-            Session::flash('error', "Kh\u{00F4}ng c\u{1EAD}p nh\u{1EAD}t \u{0111}\u{01B0}\u{1EE3}c c\u{00F4}ng vi\u{1EC7}c.");
+            Session::flash('error', "Không cập nhật được công việc.");
         } else {
-            $this->activityLog->log(Session::get('user_id'), $action, 'task', $taskId, "C\u{1EAD}p nh\u{1EAD}t c\u{00F4}ng vi\u{1EC7}c");
+            $this->activityLog->log(Session::get('user_id'), $action, 'task', $taskId, "Cập nhật công việc");
             Cache::forgetDashboard((int) Session::get('user_id'));
         }
         $this->redirect($backTo);
     }
 
-    public function delete() { $this->trashAction('delete', '/', "chuy\u{1EC3}n v\u{00E0}o th\u{00F9}ng r\u{00E1}c"); }
-    public function restore() { $this->trashAction('restore', '/tasks?filter=trash', "kh\u{00F4}i ph\u{1EE5}c"); }
-    public function forceDelete() { $this->trashAction('forceDelete', '/tasks?filter=trash', "x\u{00F3}a v\u{0129}nh vi\u{1EC5}n"); }
+    public function delete() { $this->trashAction('delete', '/', "chuyển vào thùng rác"); }
+    public function restore() { $this->trashAction('restore', '/tasks?filter=trash', "khôi phục"); }
+    public function forceDelete() { $this->trashAction('forceDelete', '/tasks?filter=trash', "xóa vĩnh viễn"); }
 
     private function trashAction($method, $default, $label)
     {
@@ -251,9 +264,9 @@ class TaskController extends Controller
         $taskId = (int)($_POST['id'] ?? 0);
         if ($taskId && $this->taskModel->{$method}($taskId, Session::get('user_id'))) {
             Cache::forgetDashboard((int) Session::get('user_id'));
-            Session::flash('success', "\u{0110}\u{00E3} " . $label . " c\u{00F4}ng vi\u{1EC7}c.");
+            Session::flash('success', "Đã " . $label . " công việc.");
         } else {
-            Session::flash('error', "Kh\u{00F4}ng th\u{1EC3} " . $label . " c\u{00F4}ng vi\u{1EC7}c.");
+            Session::flash('error', "Không thể " . $label . " công việc.");
         }
         $this->redirect($backTo);
     }
@@ -265,7 +278,7 @@ class TaskController extends Controller
         $this->requireCsrf('/tasks?filter=trash');
         $count = $this->taskModel->emptyTrash(Session::get('user_id'));
         if ($count) Cache::forgetDashboard((int) Session::get('user_id'));
-        Session::flash('success', $count ? "\u{0110}\u{00E3} x\u{00F3}a {$count} c\u{00F4}ng vi\u{1EC7}c." : "Th\u{00F9}ng r\u{00E1}c \u{0111}ang tr\u{1ED1}ng.");
+        Session::flash('success', $count ? "Đã xóa {$count} công việc." : "Thùng rác đang trống.");
         $this->redirect('/tasks?filter=trash');
     }
 
@@ -281,8 +294,8 @@ class TaskController extends Controller
         $totalPages = max(1, (int)ceil($total / Task::PER_PAGE));
         $page = min($page, $totalPages);
         $this->view('tasks/index', $this->baseData($userId) + [
-            'title' => "K\u{1EBF}t qu\u{1EA3} t\u{00EC}m \"" . $query . '"',
-            'emptyText' => "Kh\u{00F4}ng t\u{00EC}m th\u{1EA5}y c\u{00F4}ng vi\u{1EC7}c ph\u{00F9} h\u{1EE3}p.",
+            'title' => "Kết quả tìm \"" . $query . '"',
+            'emptyText' => "Không tìm thấy công việc phù hợp.",
             'tasks' => $this->taskModel->searchTasks($userId, $query, $sort, $page),
             'active_filter' => 'search', 'currentList' => null, 'search_query' => $query,
             'sort' => $sort, 'page' => $page, 'totalPages' => $totalPages, 'totalTasks' => $total,
@@ -291,10 +304,24 @@ class TaskController extends Controller
 
     private function readTaskInput()
     {
+        $rawTeamInput = $_POST['team_id'] ?? '';
+        $teamId = null;
+        $listId = null;
+
+        // Xử lý phân tách nếu giá trị gửi lên dạng nhóm hay dạng list_id
+        if (!empty($rawTeamInput)) {
+            if (strpos($rawTeamInput, 'list_') === 0) {
+                $listId = (int) str_replace('list_', '', $rawTeamInput);
+            } else {
+                $teamId = (int) $rawTeamInput;
+            }
+        }
+
         return [
             'title' => trim($_POST['title'] ?? ''),
             'description' => trim($_POST['description'] ?? ''),
-            'list_id' => !empty($_POST['list_id']) ? (int)$_POST['list_id'] : null,
+            'list_id' => $listId,
+            'team_id' => $teamId, // Thêm trường team_id vào dữ liệu lưu trữ
             'due_date' => !empty($_POST['due_date']) ? trim($_POST['due_date']) : null,
             'is_important' => !empty($_POST['is_important']) ? 1 : 0,
             'priority' => $_POST['priority'] ?? 'normal',
@@ -305,26 +332,26 @@ class TaskController extends Controller
     private function validateTask($data, $userId)
     {
         $errors = [];
-        if ($data['title'] === '') $errors['title'] = "Vui l\u{00F2}ng nh\u{1EAD}p t\u{00EA}n c\u{00F4}ng vi\u{1EC7}c.";
-        elseif (mb_strlen($data['title']) > 200) $errors['title'] = "T\u{00EA}n c\u{00F4}ng vi\u{1EC7}c t\u{1ED1}i \u{0111}a 200 k\u{00FD} t\u{1EF1}.";
-        if ($data['due_date'] !== null && !$this->isValidDate($data['due_date'])) $errors['due_date'] = "Ng\u{00E0}y h\u{1EBF}t h\u{1EA1}n kh\u{00F4}ng h\u{1EE3}p l\u{1EC7}.";
-        if (!in_array($data['priority'], ['low', 'normal', 'high'], true)) $errors['priority'] = "M\u{1EE9}c \u{01B0}u ti\u{00EA}n kh\u{00F4}ng h\u{1EE3}p l\u{1EC7}.";
-        if ($data['list_id'] !== null && !$this->listModel->findById($data['list_id'], $userId)) $errors['list_id'] = "Danh s\u{00E1}ch kh\u{00F4}ng t\u{1ED3}n t\u{1EA1}i.";
+        if ($data['title'] === '') $errors['title'] = "Vui lòng nhập tên công việc.";
+        elseif (mb_strlen($data['title']) > 200) $errors['title'] = "Tên công việc tối đa 200 ký tự.";
+        if ($data['due_date'] !== null && !$this->isValidDate($data['due_date'])) $errors['due_date'] = "Ngày hết hạn không hợp lệ.";
+        if (!in_array($data['priority'], ['low', 'normal', 'high'], true)) $errors['priority'] = "Mức ưu tiên không hợp lệ.";
+        if ($data['list_id'] !== null && !$this->listModel->findById($data['list_id'], $userId)) $errors['list_id'] = "Danh sách không tồn tại.";
         return $errors;
     }
 
     private function handleAttachmentUpload($userId)
     {
         if (empty($_FILES['attachment']) || $_FILES['attachment']['error'] === UPLOAD_ERR_NO_FILE) return [];
-        if ($_FILES['attachment']['error'] !== UPLOAD_ERR_OK) return ['error' => "T\u{1EA3}i file l\u{00EA}n kh\u{00F4}ng th\u{00E0}nh c\u{00F4}ng."];
-        if ($_FILES['attachment']['size'] > 5 * 1024 * 1024) return ['error' => "File \u{0111}\u{00ED}nh k\u{00E8}m t\u{1ED1}i \u{0111}a 5MB."];
+        if ($_FILES['attachment']['error'] !== UPLOAD_ERR_OK) return ['error' => "Tải file lên không thành công."];
+        if ($_FILES['attachment']['size'] > 5 * 1024 * 1024) return ['error' => "File đính kèm tối đa 5MB."];
         $original = basename($_FILES['attachment']['name']);
         $ext = strtolower(pathinfo($original, PATHINFO_EXTENSION));
-        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'txt'], true)) return ['error' => "Lo\u{1EA1}i file kh\u{00F4}ng \u{0111}\u{01B0}\u{1EE3}c h\u{1ED7} tr\u{1EE3}."];
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'txt'], true)) return ['error' => "Loại file không được hỗ trợ."];
         $dir = dirname(__DIR__, 2) . '/public/uploads/tasks';
-        if (!is_dir($dir) && !mkdir($dir, 0775, true)) return ['error' => "Kh\u{00F4}ng t\u{1EA1}o \u{0111}\u{01B0}\u{1EE3}c th\u{01B0} m\u{1EE5}c upload."];
+        if (!is_dir($dir) && !mkdir($dir, 0775, true)) return ['error' => "Không tạo được thư mục upload."];
         $filename = 'task_' . (int)$userId . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
-        if (!move_uploaded_file($_FILES['attachment']['tmp_name'], $dir . '/' . $filename)) return ['error' => "Kh\u{00F4}ng l\u{01B0}u \u{0111}\u{01B0}\u{1EE3}c file."];
+        if (!move_uploaded_file($_FILES['attachment']['tmp_name'], $dir . '/' . $filename)) return ['error' => "Không lưu được file."];
         return ['path' => '/uploads/tasks/' . $filename, 'name' => mb_substr($original, 0, 255)];
     }
 
