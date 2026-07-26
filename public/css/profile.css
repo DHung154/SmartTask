@@ -1,0 +1,433 @@
+/* --- USER PROFILE PAGE ---
+   D�ng chung b? bi?n m�u khai b�o trong alter_style.css
+   (file d� du?c n?p tru?c file n�y trong layout.php),
+   nh? v?y trang t�i kho?n t? d?ng h? tr? ch? d? t?i. */
+
+.user-profile-link {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.user-profile-link:hover {
+    opacity: 0.8;
+}
+
+.profile-wrapper {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.profile-header {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.profile-avatar-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.profile-info h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.profile-info p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- TAB --- */
+.profile-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-strong);
+    flex-wrap: wrap;
+}
+
+.profile-tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+    margin-bottom: -1px;
+}
+
+.profile-tab:hover {
+    color: var(--primary-color);
+    background: var(--surface-hover);
+}
+
+.profile-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+/* Panel ?n/hi?n theo tab dang ch?n */
+.tab-panel {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.tab-panel.active {
+    display: flex;
+}
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.section-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: var(--primary-color);
+}
+
+/* Statistics Grid */
+.stats-section {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+}
+
+.stat-card:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+/* Th? c?nh b�o (VD: dang c� vi?c qu� h?n) */
+.stat-card.is-alert {
+    border-color: var(--danger-color);
+}
+
+.stat-card.is-alert .stat-value {
+    color: var(--danger-color);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    color: white;
+}
+
+.stat-icon.total {
+    background: linear-gradient(135deg, #7b68ee, #6c5ce7);
+}
+
+.stat-icon.completed {
+    background: linear-gradient(135deg, #52c41a, #45a049);
+}
+
+.stat-icon.incomplete {
+    background: linear-gradient(135deg, #ff7875, #ff5252);
+}
+
+.stat-icon.important {
+    background: linear-gradient(135deg, #faad14, #f5a623);
+}
+
+.stat-icon.overdue {
+    background: linear-gradient(135deg, #d93025, #a4262c);
+}
+
+.stat-icon.today {
+    background: linear-gradient(135deg, #ffa940, #fa8c16);
+}
+
+.stat-icon.rate {
+    background: linear-gradient(135deg, #1890ff, #0050b3);
+}
+
+.stat-icon.lists {
+    background: linear-gradient(135deg, #722ed1, #531dab);
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Progress Section */
+.progress-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.progress-label {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.progress-percentage {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: var(--count-bg);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-info {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Lists Section */
+.lists-section {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.lists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.list-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+    transition: all 0.2s;
+}
+
+.list-card:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px var(--focus-ring);
+}
+
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 10px;
+    gap: 8px;
+}
+
+.list-name {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color);
+    flex: 1;
+    word-break: break-word;
+}
+
+.list-task-count {
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.list-created {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.list-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.btn-link {
+    font-size: 12px;
+    color: var(--primary-color);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.btn-link:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-link.small {
+    padding: 4px 8px;
+    font-size: 11px;
+}
+
+.btn-link.text-danger {
+    color: var(--danger-color);
+}
+
+.btn-link.text-danger:hover {
+    background: var(--danger-color);
+    color: white;
+    border-color: var(--danger-color);
+}
+
+.empty-state-note {
+    background: #fffbe6;
+    border: 1px solid #ffe58f;
+    border-radius: 6px;
+    padding: 15px;
+    text-align: center;
+    color: #8b6914;
+}
+
+/* ? ch? d? t?i, n?n v�ng nh?t ch�i m?t n�n d?i sang t�ng tr?m */
+:root[data-theme="dark"] .empty-state-note {
+    background: #3a3218;
+    border-color: #5c4d1f;
+    color: #f0d78c;
+}
+
+.empty-state-note a {
+    color: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-wrapper {
+        padding: 15px;
+    }
+
+    .profile-header {
+        padding: 20px;
+    }
+
+    .profile-avatar-section {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-info p {
+        justify-content: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+    }
+
+    .lists-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-tab {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+}

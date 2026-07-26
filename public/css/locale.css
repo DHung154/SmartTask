@@ -1,0 +1,12 @@
+.locale-form { margin: 0; }
+
+.locale-form select {
+    min-width: 48px;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    background: var(--surface);
+    color: var(--text-color);
+    font-size: .75rem;
+    font-weight: 700;
+}

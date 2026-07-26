@@ -1,0 +1,40 @@
+.kanban-drag-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: -8px 0 14px;
+    color: var(--text-muted);
+    font-size: .85rem;
+}
+
+.kanban-column {
+    background: var(--surface-2, #f8fafc);
+    border-color: var(--border-color, #d9e1ee);
+}
+
+.kanban-column.drag-over {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--focus-ring, rgba(123, 104, 238, .15));
+}
+
+.kanban-card {
+    background: var(--surface, #fff);
+    border-color: var(--border-color, #d9e1ee);
+    cursor: grab;
+    transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease;
+}
+
+.kanban-card:hover { transform: translateY(-2px); }
+.kanban-card:active { cursor: grabbing; }
+.kanban-card.is-dragging { opacity: .45; transform: rotate(1deg); }
+.kanban-card.is-saving { pointer-events: none; opacity: .6; }
+
+.kanban-meta,
+.kanban-actions span { color: var(--text-muted); }
+
+.task-progress { background: var(--border-strong, #e2e8f0); }
+
+.kanban-empty {
+    border-color: var(--border-color);
+    color: var(--text-muted);
+}

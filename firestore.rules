@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /teamChats/{teamId}/messages/{messageId} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.resource.data.teamId == teamId
+        && request.resource.data.userId is string
+        && request.resource.data.userName is string
+        && request.resource.data.userName.size() <= 120
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 2000
+        && (
+          request.resource.data.attachment == null || (
+            request.resource.data.attachment is map
+            && request.resource.data.attachment.name is string
+            && request.resource.data.attachment.url is string
+          )
+        );
+
+      allow update, delete: if false;
+    }
+  }
+}

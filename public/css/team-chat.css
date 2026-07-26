@@ -1,0 +1,186 @@
+.team-chat-card {
+    margin-top: 1.5rem;
+    border: 1px solid var(--border-color, #dbe3ee);
+    border-radius: 14px;
+    background: var(--surface, #fff);
+    color: var(--text-color, #172033);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+    overflow: hidden;
+}
+
+.team-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border-color, #dbe3ee);
+}
+
+.team-chat-title {
+    margin: 0;
+    color: var(--text-color, #172033);
+    font-size: 1.1rem;
+}
+
+.team-chat-subtitle,
+.team-chat-status,
+.team-chat-empty,
+.team-chat-setup,
+.team-chat-file-name {
+    color: var(--text-muted, #6b7280);
+    font-size: .85rem;
+}
+
+.team-chat-subtitle { margin: 3px 0 0; }
+
+.team-chat-status {
+    min-height: 20px;
+    padding: 8px 18px 0;
+}
+
+.team-chat-status.is-error { color: #dc2626; }
+.team-chat-status.is-ok { color: #15803d; }
+
+.team-chat-setup {
+    margin: 12px 18px 0;
+    padding: 11px 12px;
+    border: 1px dashed #f59e0b;
+    border-radius: 8px;
+    background: rgba(245, 158, 11, .08);
+}
+
+.team-chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 260px;
+    max-height: 460px;
+    overflow-y: auto;
+    padding: 18px;
+}
+
+.team-chat-empty { margin: auto; text-align: center; }
+
+.chat-message {
+    align-self: flex-start;
+    width: fit-content;
+    min-width: 160px;
+    max-width: min(78%, 620px);
+    padding: 9px 12px;
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 12px 12px 12px 4px;
+    background: var(--surface-2, #f8fafc);
+}
+
+.chat-message.mine {
+    align-self: flex-end;
+    border-color: rgba(37, 99, 235, .28);
+    border-radius: 12px 12px 4px 12px;
+    background: rgba(37, 99, 235, .1);
+}
+
+.chat-message-author {
+    margin-bottom: 3px;
+    color: var(--primary-color, #2563eb);
+    font-size: .76rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.chat-message-text {
+    color: var(--text-color, #172033);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.chat-message-meta {
+    margin-top: 5px;
+    color: var(--text-muted, #6b7280);
+    font-size: .7rem;
+}
+
+.chat-attachment {
+    display: block;
+    margin-top: 7px;
+    color: var(--primary-color, #2563eb);
+    font-size: .85rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.chat-attachment img {
+    display: block;
+    max-width: min(360px, 100%);
+    max-height: 260px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+.team-chat-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 12px 18px 18px;
+    border-top: 1px solid var(--border-color, #dbe3ee);
+}
+
+.team-chat-input {
+    flex: 1;
+    min-height: 42px;
+    max-height: 120px;
+    resize: vertical;
+    color: var(--text-color, #172033);
+    background: var(--surface-2, #fff);
+    border-color: var(--border-color, #dbe3ee);
+}
+
+.team-chat-input::placeholder {
+    color: var(--text-muted, #6b7280);
+}
+
+.team-chat-file-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border: 1px solid var(--border-color, #dbe3ee);
+    border-radius: 8px;
+    color: var(--text-muted, #6b7280);
+    cursor: pointer;
+}
+
+.team-chat-file-button:hover { color: var(--primary-color, #2563eb); }
+.team-chat-file-button input { display: none; }
+
+:root[data-theme="dark"] .team-chat-card {
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .28);
+}
+
+:root[data-theme="dark"] .chat-message.mine {
+    border-color: rgba(157, 141, 255, .55);
+    background: rgba(91, 78, 165, .38);
+}
+
+:root[data-theme="dark"] .chat-attachment {
+    color: #c4baff;
+}
+
+.team-chat-file-name {
+    max-width: 180px;
+    padding-bottom: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+    .team-chat-form { flex-wrap: wrap; }
+    .team-chat-input { order: 2; flex-basis: calc(100% - 50px); }
+    .team-chat-form .btn { order: 3; width: 100%; }
+    .team-chat-file-name { order: 1; max-width: calc(100% - 55px); }
+    .chat-message { max-width: 90%; }
+}

@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "teamChats": {
+      "$teamId": {
+        "messages": {
+          ".read": "auth != null",
+          "$messageId": {
+            ".write": "auth != null && !data.exists() && newData.child('teamId').val() == $teamId",
+            ".validate": "newData.hasChildren(['teamId', 'userId', 'userName', 'firebaseUid', 'text', 'createdAtClient']) && newData.child('teamId').isString() && newData.child('userId').isString() && newData.child('userName').isString() && newData.child('text').isString() && newData.child('text').val().length <= 2000"
+          }
+        }
+      }
+    }
+  }
+}
