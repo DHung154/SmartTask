@@ -25,7 +25,7 @@ class ReportController extends Controller
             $selectedDate = '';
         }
 
-        $tasks = Task::where('user_id', $userId)
+        $tasks = Task::forUser($userId)
             ->whereNotNull('due_date')
             ->whereDate('due_date', '>=', $start)
             ->whereDate('due_date', '<=', $end)
@@ -50,13 +50,13 @@ class ReportController extends Controller
     {
         $userId = auth()->id();
 
-        $priorityCounts = Task::where('user_id', $userId)
+        $priorityCounts = Task::forUser($userId)
             ->selectRaw("priority, COUNT(*) as count")
             ->groupBy('priority')
             ->pluck('count', 'priority')
             ->toArray();
 
-        $monthlySummary = Task::where('user_id', $userId)
+        $monthlySummary = Task::forUser($userId)
             ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as total, SUM(completed) as completed")
             ->groupByRaw("DATE_FORMAT(created_at, '%Y-%m')")
             ->orderByDesc('month')
@@ -64,11 +64,18 @@ class ReportController extends Controller
             ->get()
             ->toArray();
 
+        $statusCounts = Task::forUser($userId)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
         return view('reports.report', $this->baseData() + [
             'title'          => 'Báo cáo',
             'active_page'    => 'report',
             'priorityCounts' => $priorityCounts,
             'monthlySummary' => $monthlySummary,
+            'statusCounts'   => array_merge(array_fill_keys(Task::STATUSES, 0), $statusCounts),
         ]);
     }
 
@@ -90,7 +97,7 @@ class ReportController extends Controller
 
     public function exportCsv()
     {
-        $tasks = Task::where('user_id', auth()->id())->get();
+        $tasks = Task::forUser(auth()->id())->with('assignee:id,name')->get();
 
         $filename = 'todo-report-' . date('Y-m-d') . '.csv';
         $headers = [
@@ -102,7 +109,10 @@ class ReportController extends Controller
             $out = fopen('php://output', 'w');
             // Write BOM for UTF-8
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Tên công việc', 'Mô tả', 'Ưu tiên', 'Tiến độ', 'Hạn chót', 'Trạng thái']);
+            fputcsv($out, ['Tên công việc', 'Mô tả', 'Ưu tiên', 'Tiến độ', 'Hạn chót', 'Trạng thái', 'Giao cho', 'Lặp lại']);
+
+            $statusLabels = Task::statusLabels();
+            $repeatLabels = Task::repeatLabels();
 
             foreach ($tasks as $task) {
                 fputcsv($out, [
@@ -111,7 +121,9 @@ class ReportController extends Controller
                     $task->priority ?? 'normal',
                     (int) ($task->progress ?? 0) . '%',
                     $task->due_date ? $task->due_date->toDateString() : '',
-                    $task->completed ? 'Hoàn thành' : 'Chưa hoàn thành',
+                    $statusLabels[$task->status] ?? ($task->completed ? 'Hoàn thành' : 'Chưa hoàn thành'),
+                    $task->assignee->name ?? '',
+                    $repeatLabels[$task->repeat] ?? '',
                 ]);
             }
 

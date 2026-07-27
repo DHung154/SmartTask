@@ -8,6 +8,11 @@ use App\Http\Controllers\ListController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\SubtaskController;
+use App\Http\Controllers\TaskCommentController;
 
 // Health check
 Route::get('/health', function () {
@@ -31,9 +36,17 @@ Route::post('/locale', function (Request $request) {
 // Guest routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    // throttle chặn dò mật khẩu: tối đa 5 lần đăng nhập sai mỗi phút.
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:10,1');
+
+    // Quên mật khẩu
+    Route::get('/forgot-password', [PasswordResetController::class, 'showForgot'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])
+        ->middleware('throttle:5,1')->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset'])->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
 });
 
 // Auth routes
@@ -56,7 +69,21 @@ Route::middleware('auth')->group(function () {
     Route::post('/tasks/force-delete', [TaskController::class, 'forceDelete'])->name('tasks.forceDelete');
     Route::post('/tasks/empty-trash', [TaskController::class, 'emptyTrash'])->name('tasks.emptyTrash');
     Route::post('/tasks/progress', [TaskController::class, 'progress'])->name('tasks.progress');
+    Route::post('/tasks/status', [TaskController::class, 'changeStatus'])->name('tasks.status');
+    Route::post('/tasks/attachment/remove', [TaskController::class, 'removeAttachment'])->name('tasks.attachment.remove');
     Route::get('/kanban', [TaskController::class, 'kanban'])->name('tasks.kanban');
+
+    // Việc con
+    Route::post('/subtasks/create', [SubtaskController::class, 'store'])->name('subtasks.store');
+    Route::post('/subtasks/toggle', [SubtaskController::class, 'toggle'])->name('subtasks.toggle');
+    Route::post('/subtasks/delete', [SubtaskController::class, 'destroy'])->name('subtasks.destroy');
+
+    // Bình luận công việc
+    Route::post('/comments/create', [TaskCommentController::class, 'store'])->name('comments.store');
+    Route::post('/comments/delete', [TaskCommentController::class, 'destroy'])->name('comments.destroy');
+
+    // Chuông thông báo tự cập nhật
+    Route::get('/notifications/feed', [NotificationController::class, 'feed'])->name('notifications.feed');
 
     // Lists
     Route::get('/lists/create', [ListController::class, 'create'])->name('lists.create');
@@ -72,6 +99,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/teams/store', [TeamController::class, 'store']);
     Route::get('/teams/detail', [TeamController::class, 'detail'])->name('teams.detail');
     Route::post('/teams/add-member', [TeamController::class, 'addMember'])->name('teams.addMember');
+    Route::post('/teams/cancel-invitation', [TeamController::class, 'cancelInvitation'])->name('teams.cancelInvitation');
     Route::post('/teams/remove-member', [TeamController::class, 'removeMember'])->name('teams.removeMember');
     Route::post('/teams/change-role', [TeamController::class, 'changeRole'])->name('teams.changeRole');
     Route::post('/teams/transfer', [TeamController::class, 'transferOwnership'])->name('teams.transfer');
@@ -79,6 +107,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/teams/edit', [TeamController::class, 'edit'])->name('teams.edit');
     Route::post('/teams/edit', [TeamController::class, 'update'])->name('teams.update');
     Route::post('/teams/delete', [TeamController::class, 'destroy'])->name('teams.destroy');
+
+    // Lời mời vào nhóm (chuông thông báo)
+    Route::post('/invitations/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
+    Route::post('/invitations/decline', [InvitationController::class, 'decline'])->name('invitations.decline');
 
     // Profile
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');

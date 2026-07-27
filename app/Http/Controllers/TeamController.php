@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Team;
+use App\Models\TeamInvitation;
 use App\Models\TeamMember;
 use App\Models\Task;
 use App\Models\User;
@@ -111,15 +112,26 @@ class TeamController extends Controller
             ->orderByDesc('tasks.created_at')
             ->get();
 
+        $pendingInvitations = TeamInvitation::where('team_id', $teamId)
+            ->where('status', 'pending')
+            ->with('user:id,name,email')
+            ->orderByDesc('created_at')
+            ->get();
+
         return view('teams.detail', [
-            'team'        => $team,
-            'myRole'      => $myRole,
-            'members'     => $members,
-            'tasks'       => $tasks,
-            'active_page' => 'teams',
+            'team'               => $team,
+            'myRole'             => $myRole,
+            'members'            => $members,
+            'tasks'              => $tasks,
+            'pendingInvitations' => $pendingInvitations,
+            'active_page'        => 'teams',
         ]);
     }
 
+    /**
+     * Gửi lời mời vào nhóm. Người được mời chỉ trở thành thành viên
+     * sau khi bấm chấp nhận ở chuông thông báo.
+     */
     public function addMember(Request $request)
     {
         $userId = auth()->id();
@@ -132,13 +144,22 @@ class TeamController extends Controller
             ->value('role');
 
         if (!in_array($myRole, ['owner', 'admin'])) {
-            session()->flash('error', 'Bạn không có quyền thêm thành viên.');
+            session()->flash('error', 'Bạn không có quyền mời thành viên.');
             return redirect('/teams/detail?id=' . $teamId);
+        }
+
+        if (!in_array($role, ['member', 'admin'], true)) {
+            $role = 'member';
         }
 
         $targetUser = User::where('email', $email)->first();
         if (!$targetUser) {
             session()->flash('error', 'Không tìm thấy người dùng có email này.');
+            return redirect('/teams/detail?id=' . $teamId);
+        }
+
+        if ((int) $targetUser->id === (int) $userId) {
+            session()->flash('error', 'Bạn đã ở trong nhóm này rồi.');
             return redirect('/teams/detail?id=' . $teamId);
         }
 
@@ -151,37 +172,91 @@ class TeamController extends Controller
             return redirect('/teams/detail?id=' . $teamId);
         }
 
-        TeamMember::create([
-            'team_id' => $teamId,
-            'user_id' => $targetUser->id,
-            'role'    => $role,
-        ]);
+        $pending = TeamInvitation::where('team_id', $teamId)
+            ->where('user_id', $targetUser->id)
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($pending) {
+            session()->flash('error', 'Đã có lời mời đang chờ người này trả lời.');
+            return redirect('/teams/detail?id=' . $teamId);
+        }
+
+        // updateOrCreate để mời lại được người đã từ chối trước đó.
+        $invitation = TeamInvitation::updateOrCreate(
+            ['team_id' => $teamId, 'user_id' => $targetUser->id],
+            [
+                'invited_by'   => $userId,
+                'role'         => $role,
+                'status'       => 'pending',
+                'responded_at' => null,
+            ]
+        );
 
         $team = Team::find($teamId);
+        $mailSent = true;
         try {
             Mail::send('emails.team-invitation', [
-                'team' => $team,
-                'role' => $role,
-                'inviter' => auth()->user(),
+                'team'       => $team,
+                'role'       => $role,
+                'inviter'    => auth()->user(),
+                'invitee'    => $targetUser,
+                'invitation' => $invitation,
             ], function ($message) use ($email, $team) {
-                $message->to($email)->subject('Bạn vừa được thêm vào nhóm ' . ($team->name ?? 'SmartTask'));
+                $message->to($email)->subject('Lời mời tham gia nhóm ' . ($team->name ?? 'SmartTask'));
             });
         } catch (\Throwable $e) {
+            $mailSent = false;
             Log::warning('team.invitation_email_failed', ['email' => $email, 'message' => $e->getMessage()]);
         }
 
         // Keep the existing custom queue record for compatibility with older workers.
         $payload = json_encode([
             'to_email' => $email,
-            'subject'  => 'Bạn vừa được thêm vào một nhóm mới!',
-            'body'     => "<h3>Thông Báo Nhóm</h3><p>Bạn đã được thêm vào nhóm làm việc trên SmartTask với vai trò <b>{$role}</b>.</p>",
+            'subject'  => 'Bạn có một lời mời tham gia nhóm!',
+            'body'     => "<h3>Lời Mời Nhóm</h3><p>Bạn được mời vào nhóm làm việc trên SmartTask với vai trò <b>{$role}</b>. Đăng nhập và mở chuông thông báo để trả lời.</p>",
         ]);
         DB::table('job_queue')->insert([
             'type'    => 'send_team_task_email',
             'payload' => $payload,
         ]);
 
-        session()->flash('success', 'Đã thêm thành viên mới!');
+        // Lời mời đã vào chuông thông báo dù email lỗi, nên vẫn báo thành công
+        // nhưng nói rõ phần email chưa gửi được thay vì im lặng.
+        session()->flash('success', $mailSent
+            ? 'Đã gửi lời mời tới ' . $targetUser->name . '.'
+            : 'Đã tạo lời mời cho ' . $targetUser->name . ' (email chưa gửi được — kiểm tra cấu hình MAIL_* trong .env).');
+
+        return redirect('/teams/detail?id=' . $teamId);
+    }
+
+    /**
+     * Hủy lời mời chưa được trả lời (owner/admin).
+     */
+    public function cancelInvitation(Request $request)
+    {
+        $userId = auth()->id();
+        $teamId = (int) $request->input('team_id', 0);
+        $invitationId = (int) $request->input('id', 0);
+
+        $myRole = TeamMember::where('team_id', $teamId)
+            ->where('user_id', $userId)
+            ->value('role');
+
+        if (!in_array($myRole, ['owner', 'admin'])) {
+            session()->flash('error', 'Bạn không có quyền hủy lời mời.');
+            return redirect('/teams/detail?id=' . $teamId);
+        }
+
+        $deleted = TeamInvitation::where('id', $invitationId)
+            ->where('team_id', $teamId)
+            ->where('status', 'pending')
+            ->delete();
+
+        session()->flash($deleted ? 'success' : 'error', $deleted
+            ? 'Đã hủy lời mời.'
+            : 'Không tìm thấy lời mời đang chờ.');
+
         return redirect('/teams/detail?id=' . $teamId);
     }
 

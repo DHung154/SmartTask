@@ -19,6 +19,11 @@ $statusItems = [
     ['key' => 'all',        'url' => '/tasks?filter=all',        'icon' => 'fa-solid fa-list-check',     'label' => __('status.all'),        'tone' => ''],
 ];
 
+$assignmentItems = [
+    ['key' => 'assigned-to-me', 'url' => '/tasks?filter=assigned-to-me', 'icon' => 'fa-solid fa-user-check', 'label' => __('assign.to_me'), 'tone' => 'info'],
+    ['key' => 'assigned-by-me', 'url' => '/tasks?filter=assigned-by-me', 'icon' => 'fa-solid fa-user-pen',   'label' => __('assign.by_me'), 'tone' => ''],
+];
+
 $toolItems = [
     ['key' => 'teams',    'url' => '/teams',    'icon' => 'fa-solid fa-users',         'label' => __('nav.teams')],
     ['key' => 'kanban',   'url' => '/kanban',   'icon' => 'fa-solid fa-table-columns', 'label' => __('nav.kanban')],
@@ -53,6 +58,8 @@ $toolItems = [
     <link rel="stylesheet" href="/css/alter_style.css?v=20260722d">
     <link rel="stylesheet" href="/css/profile.css?v=20260722b">
     <link rel="stylesheet" href="/css/locale.css?v=20260727a">
+    <link rel="stylesheet" href="/css/notifications.css?v=20260728b">
+    <link rel="stylesheet" href="/css/task-details.css?v=20260728a">
 </head>
 
 <body class="bootstrap-layout">
@@ -82,6 +89,8 @@ $toolItems = [
                 </form>
 
                 <div class="user-info">
+                    @include('partials.notification-bell')
+
                     <form method="POST" action="/locale" class="locale-form" title="{{ __('common.language') }}">
                         @csrf
                         <select name="locale" aria-label="{{ __('common.language') }}" onchange="this.form.submit()">
@@ -161,6 +170,36 @@ $toolItems = [
                         </a>
                     @endforeach
                 </div>
+
+                @php
+                    $hasAssignments = ($taskCounts['assigned-to-me'] ?? 0) > 0
+                        || ($taskCounts['assigned-by-me'] ?? 0) > 0
+                        || in_array($currentFilter, ['assigned-to-me', 'assigned-by-me'], true);
+                @endphp
+                @if ($hasAssignments)
+                    <hr class="sidebar-divider">
+
+                    <div class="sidebar-section-title">{{ __('sidebar.assignments') }}</div>
+                    <div class="sidebar-group">
+                        @foreach ($assignmentItems as $item)
+                            @php
+                            $count    = $taskCounts[$item['key']] ?? 0;
+                            $isActive = ($currentFilter === $item['key']) ? 'active' : '';
+                            @endphp
+                            <a href="{{ $item['url'] }}" class="sidebar-item {{ $isActive }}">
+                                <div class="sidebar-item-content">
+                                    <div class="sidebar-item-label">
+                                        <i class="{{ $item['icon'] }} {{ $item['tone'] ? 'text-' . $item['tone'] : '' }}"></i>
+                                        <span>{{ $item['label'] }}</span>
+                                    </div>
+                                    @if ($count > 0)
+                                        <span class="task-count">{{ (int)$count }}</span>
+                                    @endif
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
 
                 <hr class="sidebar-divider">
 
@@ -249,6 +288,7 @@ $toolItems = [
     </div>
 
     <script src="/js/main.js?v=20260722b"></script>
+    <script src="/js/notifications.js?v=20260728b"></script>
 </body>
 
 </html>

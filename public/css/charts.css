@@ -1,0 +1,40 @@
+/* ===== Biểu đồ trang Báo cáo ===== */
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.chart-block h2 {
+    margin-bottom: 12px;
+}
+
+.chart-holder {
+    position: relative;
+    height: 260px;
+}
+
+.chart-holder-wide {
+    height: 320px;
+}
+
+@media print {
+    .report-actions,
+    .navbar,
+    .sidebar {
+        display: none !important;
+    }
+
+    .chart-holder {
+        height: 220px;
+    }
+}
+
+@media (max-width: 640px) {
+    .chart-holder,
+    .chart-holder-wide {
+        height: 240px;
+    }
+}

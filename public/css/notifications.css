@@ -1,0 +1,293 @@
+/* ===== Chuông thông báo trên navbar ===== */
+
+.notif {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.notif-btn {
+    position: relative;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.notif-btn:hover,
+.notif.open .notif-btn {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.notif-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: var(--danger-color);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+/* Panel thả xuống — mở khi hover hoặc khi bấm (class .open) */
+.notif-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 340px;
+    max-height: 460px;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+    z-index: 200;
+}
+
+.notif:hover .notif-panel,
+.notif.open .notif-panel,
+.notif:focus-within .notif-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Vùng đệm vô hình để chuột không "rơi" khi di từ chuông xuống panel */
+.notif-panel::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: 10px;
+}
+
+.notif-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.notif-head-count {
+    background: var(--danger-color);
+    color: #fff;
+    border-radius: 10px;
+    padding: 1px 8px;
+    font-size: 0.7rem;
+}
+
+.notif-body {
+    overflow-y: auto;
+    padding-bottom: 4px;
+}
+
+.notif-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.notif-section-link {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--primary-color);
+}
+
+.notif-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.notif-item:last-child {
+    border-bottom: none;
+}
+
+.notif-item-link {
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.notif-item-link:hover {
+    background: var(--surface-hover);
+    color: inherit;
+}
+
+.notif-icon {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.notif-icon-invite {
+    background: var(--focus-ring);
+    color: var(--primary-color);
+}
+
+.notif-icon-danger {
+    background: var(--danger-soft);
+    color: var(--danger-color);
+}
+
+.notif-icon-warning {
+    background: rgba(245, 176, 65, 0.22);
+    color: var(--warning-color);
+}
+
+.notif-icon-assign {
+    background: rgba(0, 188, 242, 0.18);
+    color: var(--info-color);
+}
+
+/* Badge nảy nhẹ khi có thông báo mới đến trong lúc đang mở trang. */
+.notif-badge.is-bump {
+    animation: notif-bump 0.5s ease;
+}
+
+@keyframes notif-bump {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.45); }
+    70%  { transform: scale(0.92); }
+    100% { transform: scale(1); }
+}
+
+.notif-content {
+    min-width: 0;
+    flex: 1;
+}
+
+.notif-text {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.notif-meta {
+    margin: 3px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.notif-meta-danger {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.notif-role {
+    background: var(--count-bg);
+    color: var(--text-color);
+    border-radius: 8px;
+    padding: 1px 7px;
+    font-weight: 600;
+}
+
+.notif-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.notif-actions form {
+    margin: 0;
+}
+
+.notif-accept,
+.notif-decline {
+    padding: 3px 10px;
+    font-size: 0.72rem;
+}
+
+.notif-more {
+    display: block;
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    text-align: center;
+}
+
+.notif-empty {
+    padding: 26px 14px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.notif-empty i {
+    font-size: 1.6rem;
+    opacity: 0.5;
+}
+
+.notif-empty p {
+    margin: 8px 0 0;
+    font-size: 0.8rem;
+}
+
+/* Danh sách lời mời đang chờ ở trang chi tiết nhóm */
+.invite-pending-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.invite-pending-row:last-child {
+    border-bottom: none;
+}
+
+.invite-pending-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.invite-pending-meta {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+    .notif-panel {
+        position: fixed;
+        top: 52px;
+        left: 8px;
+        right: 8px;
+        width: auto;
+    }
+}

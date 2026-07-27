@@ -38,3 +38,35 @@
     border-color: var(--border-color);
     color: var(--text-muted);
 }
+
+/* Bảng có 4 cột nên cho cuộn ngang trên màn hình hẹp thay vì bóp nát cột. */
+.kanban-board {
+    overflow-x: auto;
+}
+
+.kanban-column {
+    min-width: 240px;
+}
+
+/* Thông báo nổi khi lưu trạng thái thất bại. */
+.kanban-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    z-index: 300;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: .85rem;
+    color: #fff;
+    background: var(--success-color);
+    box-shadow: var(--shadow-lg);
+}
+
+.kanban-toast.is-error {
+    background: var(--danger-color);
+}
+
+.kanban-toast[hidden] {
+    display: none;
+}

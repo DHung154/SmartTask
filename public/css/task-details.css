@@ -1,0 +1,248 @@
+/* ===== Việc con, bình luận, file đính kèm trong trang sửa công việc ===== */
+
+.form-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* --- File đính kèm --- */
+.attachment-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.attachment-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.attachment-row:last-child {
+    border-bottom: none;
+}
+
+.attachment-row form {
+    margin: 0;
+}
+
+.attachment-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    color: var(--text-color);
+    text-decoration: none;
+}
+
+.attachment-link:hover .attachment-name {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.attachment-link i {
+    color: var(--primary-color);
+    flex-shrink: 0;
+}
+
+.attachment-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.85rem;
+}
+
+.attachment-size {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+/* --- Việc con --- */
+.subtask-progress {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--count-bg);
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.subtask-progress span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+    transition: width 0.3s;
+}
+
+.subtask-list {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
+
+.subtask-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.subtask-row:last-child {
+    border-bottom: none;
+}
+
+.subtask-row form {
+    margin: 0;
+    display: flex;
+}
+
+.subtask-check {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
+    color: var(--text-muted);
+    display: flex;
+    transition: color 0.15s;
+}
+
+.subtask-check:hover {
+    color: var(--primary-color);
+}
+
+.subtask-row.is-done .subtask-check {
+    color: var(--success-color);
+}
+
+.subtask-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.88rem;
+    word-break: break-word;
+}
+
+.subtask-row.is-done .subtask-title {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.subtask-add-form,
+.comment-add-form {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-top: 12px;
+}
+
+.subtask-add-form .form-control,
+.comment-add-form .form-control {
+    flex: 1;
+}
+
+.subtask-add-form .btn,
+.comment-add-form .btn {
+    flex-shrink: 0;
+}
+
+/* --- Bình luận --- */
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.comment-row {
+    display: flex;
+    gap: 10px;
+}
+
+.comment-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.comment-body {
+    flex: 1;
+    min-width: 0;
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.comment-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 3px;
+    font-size: 0.8rem;
+}
+
+.comment-head form {
+    margin: 0 0 0 auto;
+}
+
+.comment-time {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.comment-delete {
+    padding: 0;
+    font-size: 0.8rem;
+}
+
+.comment-text {
+    margin: 0;
+    font-size: 0.87rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* --- Thẻ Kanban: người được giao --- */
+.kanban-assignee {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 6px 0;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.kanban-avatar {
+    width: 22px;
+    height: 22px;
+    font-size: 0.65rem;
+    background: var(--primary-color);
+    color: #fff;
+}
+
+/* --- Người được giao hiện trong danh sách công việc --- */
+.meta-assignee {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--primary-color);
+}
+
+@media (max-width: 560px) {
+    .subtask-add-form,
+    .comment-add-form {
+        flex-direction: column;
+    }
+
+    .subtask-add-form .btn,
+    .comment-add-form .btn {
+        width: 100%;
+    }
+}

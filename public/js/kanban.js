@@ -1,11 +1,34 @@
+// Kanban kéo thả: cập nhật thẳng trên giao diện, không tải lại trang.
 document.addEventListener('DOMContentLoaded', function () {
     var board = document.querySelector('[data-kanban-board]');
     if (!board) return;
 
     var csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    var toast = document.querySelector('[data-kanban-toast]');
     var draggedCard = null;
+    var toastTimer = null;
 
-    board.querySelectorAll('.kanban-card[draggable="true"]').forEach(function (card) {
+    function showToast(message, isError) {
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.toggle('is-error', !!isError);
+        toast.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toast.hidden = true; }, 2500);
+    }
+
+    // Cập nhật số đếm và dòng "trống" của mọi cột.
+    function refreshColumns() {
+        board.querySelectorAll('.kanban-column').forEach(function (column) {
+            var cards = column.querySelectorAll('.kanban-card').length;
+            var counter = column.querySelector('[data-column-count]');
+            var empty = column.querySelector('[data-kanban-empty]');
+            if (counter) counter.textContent = cards;
+            if (empty) empty.style.display = cards ? 'none' : '';
+        });
+    }
+
+    function bindCard(card) {
         card.addEventListener('dragstart', function (event) {
             draggedCard = card;
             card.classList.add('is-dragging');
@@ -18,7 +41,9 @@ document.addEventListener('DOMContentLoaded', function () {
             board.querySelectorAll('.drag-over').forEach(function (column) { column.classList.remove('drag-over'); });
             draggedCard = null;
         });
-    });
+    }
+
+    board.querySelectorAll('.kanban-card[draggable="true"]').forEach(bindCard);
 
     board.querySelectorAll('.kanban-column').forEach(function (column) {
         column.addEventListener('dragover', function (event) {
@@ -36,33 +61,53 @@ document.addEventListener('DOMContentLoaded', function () {
             column.classList.remove('drag-over');
             if (!draggedCard) return;
 
-            var taskId = draggedCard.dataset.taskId;
-            var progress = column.dataset.progress;
-            var currentColumn = draggedCard.closest('.kanban-column');
-            if (!taskId || !progress || currentColumn === column) return;
+            var card = draggedCard;
+            var taskId = card.dataset.taskId;
+            var status = column.dataset.status;
+            var sourceColumn = card.closest('.kanban-column');
+            if (!taskId || !status || sourceColumn === column) return;
 
-            draggedCard.classList.add('is-saving');
-            var body = new URLSearchParams({
-                _token: csrf,
-                id: taskId,
-                progress: progress,
-                redirect: '/kanban',
-            });
+            // Chuyển thẻ ngay để thao tác thấy mượt, lỗi thì trả về chỗ cũ.
+            var list = column.querySelector('[data-kanban-list]');
+            var nextSibling = card.nextSibling;
+            list.appendChild(card);
+            card.classList.add('is-saving');
+            refreshColumns();
 
-            fetch('/tasks/progress', {
+            fetch('/tasks/status', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                     'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
                 },
-                body: body,
+                body: new URLSearchParams({ _token: csrf, id: taskId, status: status }),
             }).then(function (response) {
-                if (!response.ok) throw new Error('Kanban update failed');
-                window.location.reload();
+                if (!response.ok) throw new Error('status update failed');
+                return response.json();
+            }).then(function (payload) {
+                var progress = payload && payload.data ? payload.data.progress : null;
+                if (progress !== null && progress !== undefined) {
+                    var bar = card.querySelector('[data-progress-bar]');
+                    var text = card.querySelector('[data-progress-text]');
+                    if (bar) bar.style.width = progress + '%';
+                    if (text) text.textContent = progress + '%';
+                }
+                card.classList.remove('is-saving');
             }).catch(function () {
-                draggedCard.classList.remove('is-saving');
-                window.alert('Không thể cập nhật trạng thái công việc.');
+                // Trả thẻ về đúng vị trí cũ.
+                var sourceList = sourceColumn.querySelector('[data-kanban-list]');
+                if (nextSibling && nextSibling.parentNode === sourceList) {
+                    sourceList.insertBefore(card, nextSibling);
+                } else {
+                    sourceList.appendChild(card);
+                }
+                card.classList.remove('is-saving');
+                refreshColumns();
+                showToast('Không cập nhật được trạng thái công việc.', true);
             });
         });
     });
+
+    refreshColumns();
 });

@@ -5,6 +5,7 @@ $team = $team ?? [];
 $myRole = $myRole ?? 'member';
 $members = $members ?? [];
 $tasks = $tasks ?? [];
+$pendingInvitations = $pendingInvitations ?? collect();
 $teamId = $team['id'] ?? 0;
 $isOwner = $myRole === 'owner';
 $isAdmin = $myRole === 'admin';
@@ -172,6 +173,37 @@ $teamChatConfig = [
                             <i class="fa-solid fa-paper-plane me-1"></i> {{ __('teams.add') }}
                         </button>
                     </form>
+
+                    <p style="margin: 10px 0 0; font-size: 0.75rem; color: var(--text-muted);">
+                        <i class="fa-solid fa-circle-info me-1"></i>{{ __('teams.invite_hint') }}
+                    </p>
+
+                    @if ($pendingInvitations->isNotEmpty())
+                        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 14px 0 10px;">
+                        <div class="notif-section-title" style="padding: 0 0 4px;">
+                            {{ __('teams.pending_invitations', ['count' => $pendingInvitations->count()]) }}
+                        </div>
+
+                        @foreach ($pendingInvitations as $invitation)
+                            <div class="invite-pending-row">
+                                <div style="min-width: 0;">
+                                    <div class="invite-pending-name">{{ $invitation->user->name ?? '' }}</div>
+                                    <div class="invite-pending-meta">
+                                        {{ $invitation->user->email ?? '' }}
+                                        · {{ $invitation->role === 'admin' ? __('teams.role_admin') : __('teams.role_member') }}
+                                    </div>
+                                </div>
+                                <form action="/teams/cancel-invitation" method="POST" style="margin: 0;">
+                                    @csrf
+                                    <input type="hidden" name="team_id" value="{{ $teamId }}">
+                                    <input type="hidden" name="id" value="{{ (int) $invitation->id }}">
+                                    <button type="submit" class="btn btn-secondary btn-sm" title="{{ __('teams.cancel_invitation') }}" style="padding: 2px 8px; font-size: 0.7rem;">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        @endforeach
+                    @endif
                 </div>
             @endif
 

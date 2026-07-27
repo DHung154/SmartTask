@@ -28,6 +28,7 @@
             <div class="form-group"><label for="password">Mật khẩu</label><input type="password" id="password" name="password" autocomplete="current-password" class="{{ $errors->has('password') ? 'is-invalid' : '' }}">@error('password') <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span> @enderror</div>
             <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
         </form>
+        <p class="auth-link"><a href="/forgot-password">Quên mật khẩu?</a></p>
         <p class="auth-link">Chưa có tài khoản? <a href="/register">Đăng ký ngay</a></p>
     </div></div>
 </body>

@@ -234,9 +234,35 @@ $buildUrl = function (array $overrides = []) use ($filter, $sort, $page, $isSear
                                     </span>
                                 @endif
 
-                                @if (!empty($task->attachment_path))
-                                    <span class="attachment-link" title="{{ $task->attachment_name ?? "File \u{0111}\u{00ED}nh k\u{00E8}m" }}">
-                                        <i class="fa-solid fa-paperclip"></i>
+                                @php $attachmentCount = $task->attachments_count ?? (!empty($task->attachment_path) ? 1 : 0); @endphp
+                                @if ($attachmentCount > 0)
+                                    <span class="attachment-link" title="File đính kèm">
+                                        <i class="fa-solid fa-paperclip"></i>{{ $attachmentCount > 1 ? ' ' . $attachmentCount : '' }}
+                                    </span>
+                                @endif
+
+                                @if (($task->comments_count ?? 0) > 0)
+                                    <span class="meta-note" title="Bình luận">
+                                        <i class="fa-regular fa-comment"></i> {{ $task->comments_count }}
+                                    </span>
+                                @endif
+
+                                @php $subtaskSummary = $task->subtaskSummary(); @endphp
+                                @if ($subtaskSummary['total'] > 0)
+                                    <span class="meta-note" title="Việc con">
+                                        <i class="fa-solid fa-list-check"></i> {{ $subtaskSummary['done'] }}/{{ $subtaskSummary['total'] }}
+                                    </span>
+                                @endif
+
+                                @if ($task->repeat !== 'none')
+                                    <span class="meta-note" title="{{ __('repeat.' . $task->repeat) }}">
+                                        <i class="fa-solid fa-rotate"></i>
+                                    </span>
+                                @endif
+
+                                @if ($task->assignee)
+                                    <span class="meta-assignee" title="Giao cho {{ $task->assignee->name }}">
+                                        <i class="fa-solid fa-user-check"></i> {{ $task->assignee->name }}
                                     </span>
                                 @endif
 

@@ -10,18 +10,32 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'api_token'];
+    protected $fillable = ['name', 'email', 'password', 'role'];
 
-    protected $hidden = ['password', 'remember_token', 'api_token'];
+    protected $hidden = ['password'];
+
+    /**
+     * Bảng users không có cột remember_token nên tắt tính năng "ghi nhớ đăng nhập",
+     * tránh Laravel cố ghi vào cột không tồn tại.
+     */
+    public function getRememberTokenName()
+    {
+        return null;
+    }
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
 
     public function tasks()
     {
         return $this->hasMany(Task::class);
+    }
+
+    /** Việc được người khác giao cho mình. */
+    public function assignedTasks()
+    {
+        return $this->hasMany(Task::class, 'assignee_id');
     }
 
     public function lists()
