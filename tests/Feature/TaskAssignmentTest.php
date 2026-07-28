@@ -136,4 +136,58 @@ class TaskAssignmentTest extends TestCase
             ->assertOk()
             ->assertSee('Chuẩn bị slide');
     }
+
+    public function test_member_cannot_assign_task_to_admin_or_others(): void
+    {
+        $owner = User::factory()->create();
+        $member = User::factory()->create();
+        $team = $this->teamWith($owner, $member);
+
+        $this->actingAs($member)->post('/tasks/create', [
+            'title'       => 'Công việc do member tạo',
+            'team_id'     => (string) $team->id,
+            'assignee_id' => $owner->id,
+            'priority'    => 'normal',
+        ]);
+
+        $this->assertDatabaseHas('tasks', [
+            'title'       => 'Công việc do member tạo',
+            'user_id'     => $member->id,
+            'assignee_id' => null,
+            'team_id'     => $team->id,
+        ]);
+    }
+
+    public function test_member_can_update_progress_and_save(): void
+    {
+        $owner = User::factory()->create();
+        $member = User::factory()->create();
+        $team = $this->teamWith($owner, $member);
+
+        $task = Task::create([
+            'user_id'     => $owner->id,
+            'assignee_id' => $member->id,
+            'team_id'     => $team->id,
+            'title'       => 'Việc cần làm',
+            'progress'    => 0,
+            'status'      => 'todo',
+        ]);
+
+        $this->actingAs($member)->post('/tasks/update', [
+            'id'          => $task->id,
+            'title'       => 'Việc cần làm',
+            'team_id'     => (string) $team->id,
+            'assignee_id' => $owner->id, // Member cố gắng đổi assignee sang owner
+            'progress'    => 50,
+            'status'      => 'doing',
+            'priority'    => 'normal',
+        ])->assertRedirect('/');
+
+        $this->assertDatabaseHas('tasks', [
+            'id'          => $task->id,
+            'assignee_id' => $member->id, // Vẫn giữ nguyên assignee là member
+            'progress'    => 50,
+            'status'      => 'doing',
+        ]);
+    }
 }

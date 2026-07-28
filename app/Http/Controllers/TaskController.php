@@ -90,6 +90,7 @@ class TaskController extends Controller
             'teams'             => $teams,
             'members'           => $this->assignableMembers($userId),
             'teamMembers'       => $this->teamMemberMap($userId),
+            'userTeamRoles'     => $this->userTeamRoles($userId),
         ]);
     }
 
@@ -97,6 +98,13 @@ class TaskController extends Controller
     {
         $userId = auth()->id();
         $data = $this->readTaskInput($request);
+
+        if (!empty($data['team_id']) && !empty($data['assignee_id'])) {
+            if (!$this->isTeamAdmin($data['team_id'], $userId)) {
+                $data['assignee_id'] = null;
+            }
+        }
+
         $errors = $this->validateTask($data, $userId);
 
         $attachment = $this->handleAttachmentUpload($request, $userId);
@@ -181,11 +189,12 @@ class TaskController extends Controller
         $task->load(['subtasks', 'comments.user:id,name', 'attachments', 'assignee:id,name']);
 
         return view('tasks.edit', $this->baseData() + [
-            'title'      => 'Sửa công việc',
-            'task'       => $task,
-            'teams'      => $teams,
-            'members'    => $this->assignableMembers($userId),
-            'teamMembers' => $this->teamMemberMap($userId),
+            'title'        => 'Sửa công việc',
+            'task'         => $task,
+            'teams'        => $teams,
+            'members'      => $this->assignableMembers($userId),
+            'teamMembers'  => $this->teamMemberMap($userId),
+            'userTeamRoles' => $this->userTeamRoles($userId),
         ]);
     }
 
@@ -202,7 +211,13 @@ class TaskController extends Controller
 
         $backUrl = '/tasks/edit?id=' . (int) $task->id;
         $data = $this->readTaskInput($request);
-        $errors = $this->validateTask($data, $userId);
+
+        $effectiveTeamId = $data['team_id'] ?? $task->team_id;
+        if (!$this->isTeamAdmin($effectiveTeamId, $userId)) {
+            $data['assignee_id'] = $task->assignee_id;
+        }
+
+        $errors = $this->validateTask($data, $userId, $task->assignee_id);
 
         $existingCount = $task->attachments()->count();
         $attachment = $this->handleAttachmentUpload($request, $userId, $existingCount);
@@ -550,7 +565,7 @@ class TaskController extends Controller
         ];
     }
 
-    private function validateTask(array $data, int $userId): array
+    private function validateTask(array $data, int $userId, ?int $existingAssigneeId = null): array
     {
         $errors = [];
 
@@ -572,12 +587,12 @@ class TaskController extends Controller
             $errors['list_id'] = 'Danh sách không tồn tại.';
         }
 
-        // Chỉ giao việc được cho thành viên của đúng nhóm mà task thuộc về.
-        if ($data['assignee_id'] !== null) {
+        // Chỉ giao việc được cho thành viên của đúng nhóm mà task thuộc về, và chỉ Admin/Owner nhóm mới được giao việc.
+        if ($data['assignee_id'] !== null && $data['assignee_id'] !== $existingAssigneeId) {
             if (!$data['team_id']) {
                 $errors['assignee_id'] = 'Chỉ giao được việc cho thành viên khi công việc thuộc một nhóm.';
             } elseif (!$this->canAssignTo($data['team_id'], $data['assignee_id'], $userId)) {
-                $errors['assignee_id'] = 'Người được giao không thuộc nhóm này.';
+                $errors['assignee_id'] = 'Người được giao không thuộc nhóm này hoặc bạn không có quyền giao việc.';
             }
         }
 
@@ -627,17 +642,48 @@ class TaskController extends Controller
         }
     }
 
+    private function isTeamAdmin($teamId, $userId): bool
+    {
+        if (!$teamId || !$userId) {
+            return false;
+        }
+
+        $user = User::find($userId);
+        if ($user && $user->role === 'admin') {
+            return true;
+        }
+
+        return TeamMember::where('team_id', $teamId)
+            ->where('user_id', $userId)
+            ->whereIn('role', ['owner', 'admin'])
+            ->exists();
+    }
+
     /**
-     * Người giao phải là thành viên nhóm, và người nhận cũng vậy.
+     * Người giao phải là Admin/Owner nhóm, và người nhận phải thuộc nhóm đó.
      */
     private function canAssignTo($teamId, $assigneeId, $userId): bool
     {
-        $isMember = TeamMember::where('team_id', $teamId)->where('user_id', $userId)->exists();
-        if (!$isMember) {
+        if (!$this->isTeamAdmin($teamId, $userId)) {
             return false;
         }
 
         return TeamMember::where('team_id', $teamId)->where('user_id', $assigneeId)->exists();
+    }
+
+    private function userTeamRoles($userId): array
+    {
+        $user = User::find($userId);
+        $isGlobalAdmin = ($user && $user->role === 'admin');
+
+        $memberships = TeamMember::where('user_id', $userId)->get(['team_id', 'role']);
+        $map = [];
+
+        foreach ($memberships as $m) {
+            $map[(int) $m->team_id] = $isGlobalAdmin ? 'admin' : $m->role;
+        }
+
+        return $map;
     }
 
     /** Thành viên của các nhóm mà user tham gia, để đổ vào ô chọn người nhận. */

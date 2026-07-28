@@ -132,7 +132,6 @@ $hasSubtasks = $subtaskSummary['total'] > 0;
                         @endforeach
                     </select>
                     @error('assignee_id') <span class="field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</span> @enderror
-                    <small class="form-hint">Chỉ giao được cho thành viên của nhóm đã chọn ở trên.</small>
                 </div>
 
                 <div class="form-group half-width">
@@ -321,6 +320,7 @@ $hasSubtasks = $subtaskSummary['total'] > 0;
 </div>
 
 <script type="application/json" id="team-members-map">@json($teamMembers)</script>
-<script src="/js/task-form.js?v=20260728a"></script>
+<script type="application/json" id="user-team-roles">@json($userTeamRoles ?? [])</script>
+<script src="/js/task-form.js?v=20260728c"></script>
 
 @endsection

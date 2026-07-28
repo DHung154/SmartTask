@@ -1,12 +1,15 @@
 // Form công việc: lọc ô "Giao cho" theo nhóm đang chọn, và ẩn/hiện ngày kết thúc lặp.
 document.addEventListener('DOMContentLoaded', function () {
     var mapEl = document.getElementById('team-members-map');
+    var rolesEl = document.getElementById('user-team-roles');
     var teamSelect = document.getElementById('team_id');
     var assigneeSelect = document.getElementById('assignee_id');
 
     if (mapEl && teamSelect && assigneeSelect) {
         var teamMembers = {};
+        var teamRoles = {};
         try { teamMembers = JSON.parse(mapEl.textContent || '{}'); } catch (e) { teamMembers = {}; }
+        try { teamRoles = JSON.parse(rolesEl ? rolesEl.textContent || '{}' : '{}'); } catch (e) { teamRoles = {}; }
 
         var initial = assigneeSelect.value;
 
@@ -15,6 +18,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Chỉ nhóm mới giao việc được; "list_x" và rỗng đều là việc cá nhân.
             var isTeam = raw !== '' && raw.indexOf('list_') !== 0;
             var members = isTeam ? (teamMembers[raw] || []) : [];
+            var userRole = isTeam ? (teamRoles[raw] || 'member') : 'member';
+            var isAdmin = (userRole === 'owner' || userRole === 'admin');
             var previous = assigneeSelect.value || initial;
 
             assigneeSelect.innerHTML = '';
@@ -32,7 +37,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 assigneeSelect.appendChild(option);
             });
 
-            assigneeSelect.disabled = !isTeam;
+            var assigneeGroup = assigneeSelect.closest('.form-group') || assigneeSelect.parentElement;
+
+            if (isTeam && isAdmin) {
+                if (assigneeGroup) assigneeGroup.style.display = '';
+                assigneeSelect.disabled = false;
+            } else {
+                if (assigneeGroup) assigneeGroup.style.display = 'none';
+                assigneeSelect.disabled = true;
+            }
         }
 
         teamSelect.addEventListener('change', syncAssignees);
