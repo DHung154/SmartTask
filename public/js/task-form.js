@@ -46,4 +46,41 @@ document.addEventListener('DOMContentLoaded', function () {
             repeatUntil.style.display = repeatSelect.value === 'none' ? 'none' : '';
         });
     }
+
+    // Đồng bộ tự động giữa Thanh tiến độ (Progress Slider) và Trạng thái (Status Dropdown)
+    var progressInput = document.getElementById('progress');
+    var statusSelect = document.getElementById('status');
+    var progressValue = document.getElementById('progressValue');
+
+    if (progressInput) {
+        progressInput.addEventListener('input', function () {
+            var val = parseInt(progressInput.value, 10) || 0;
+            if (progressValue) progressValue.textContent = val + '%';
+
+            if (statusSelect) {
+                if (val >= 100) {
+                    statusSelect.value = 'done';
+                } else if (statusSelect.value === 'done' && val < 100) {
+                    statusSelect.value = val > 0 ? 'doing' : 'todo';
+                }
+            }
+        });
+    }
+
+    if (statusSelect && progressInput) {
+        statusSelect.addEventListener('change', function () {
+            var st = statusSelect.value;
+            var val = parseInt(progressInput.value, 10) || 0;
+            if (st === 'done') {
+                progressInput.value = 100;
+                if (progressValue) progressValue.textContent = '100%';
+            } else if (st === 'todo' && val === 100) {
+                progressInput.value = 0;
+                if (progressValue) progressValue.textContent = '0%';
+            } else if (st === 'doing' && (val === 100 || val === 0)) {
+                progressInput.value = 50;
+                if (progressValue) progressValue.textContent = '50%';
+            }
+        });
+    }
 });

@@ -524,7 +524,14 @@ class TaskController extends Controller
             }
         }
 
+        $progress = max(0, min(100, (int) $request->input('progress', 0)));
         $status = Task::normalizeStatus($request->input('status', 'todo'));
+
+        if ($progress >= 100) {
+            $status = 'done';
+        } elseif ($status === 'done' && $progress < 100) {
+            $progress = 100;
+        }
 
         return [
             'title'        => trim($request->input('title', '')),
@@ -535,7 +542,7 @@ class TaskController extends Controller
             'due_date'     => $request->filled('due_date') ? trim($request->input('due_date')) : null,
             'is_important' => $request->filled('is_important') ? 1 : 0,
             'priority'     => $request->input('priority', 'normal'),
-            'progress'     => max(0, min(100, (int) $request->input('progress', 0))),
+            'progress'     => $progress,
             'status'       => $status,
             'completed'    => $status === 'done',
             'repeat'       => Task::normalizeRepeat($request->input('repeat', 'none')),

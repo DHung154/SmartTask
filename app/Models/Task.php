@@ -9,6 +9,15 @@ class Task extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::updated(function (Task $task) {
+            if (($task->completed || $task->status === 'done') && $task->repeat !== 'none') {
+                $task->spawnNextOccurrence();
+            }
+        });
+    }
+
     const PER_PAGE = 10;
 
     /** Các trạng thái Kanban theo thứ tự cột. */
@@ -273,14 +282,16 @@ class Task extends Model
     /** Hạn kế tiếp theo chu kỳ lặp, null nếu không lặp hoặc đã quá repeat_until. */
     public function nextDueDate(): ?\Illuminate\Support\Carbon
     {
-        if ($this->repeat === 'none' || !$this->due_date) {
+        if ($this->repeat === 'none') {
             return null;
         }
 
+        $baseDate = $this->due_date ? $this->due_date->copy() : now();
+
         $next = match ($this->repeat) {
-            'daily'   => $this->due_date->copy()->addDay(),
-            'weekly'  => $this->due_date->copy()->addWeek(),
-            'monthly' => $this->due_date->copy()->addMonth(),
+            'daily'   => $baseDate->addDay(),
+            'weekly'  => $baseDate->addWeek(),
+            'monthly' => $baseDate->addMonth(),
             default   => null,
         };
 
